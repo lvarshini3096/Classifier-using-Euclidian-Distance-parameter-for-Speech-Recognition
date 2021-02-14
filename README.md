@@ -1,1 +1,1 @@
-# Classifier-using-Euclidian-Distance-parameter-for-Speech-Recognition
+# Classifier using Euclidian Distance parameter for Speech Recognition
