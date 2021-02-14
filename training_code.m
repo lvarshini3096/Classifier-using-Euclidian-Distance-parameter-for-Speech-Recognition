@@ -1,7 +1,8 @@
 clc
 clear all
 
-addpath mfcc
+%External code for extracting MFCCs
+addpath mfcc 
 
 Tw = 25;           % analysis frame duration (ms)
 Ts = 10;           % analysis frame shift (ms)
@@ -15,7 +16,7 @@ L = 22;            % cepstral sine lifter parameter
 % N = length(x);
 % t = N/fs;
 
-% hamming window (see Eq. (5.2) on p.73 of [1])
+% hamming window 
 hamming = @(N)(0.54-0.46*cos(2*pi*[0:N-1].'/(N-1)));
 
 s = 10^20;
@@ -24,7 +25,7 @@ s = 10^20;
 [a,fs1]= audioread('Test_word.m4a');
 x = resample(a,16000,fs1);
 
-
+%Read the folder and access each audio file
 AudioInputFolder='C:\Users\lvars\OneDrive\Documents\ASU\fall 19\speech analysis\Assignment 3\training';
 WORDS = dir(fullfile(AudioInputFolder,'*.m4a'));
 
@@ -52,23 +53,14 @@ for j=1:length(WORDS)
         B = y;
     end
 
-    size(A)
-    size(B)
+size(A)
+size(B)
 
-    % Feature extraction (feature vectors as columns)
+% Feature extraction (feature vectors as columns)
 [ MFCCs1, FBEs1, frames1,eframes1 ] = ...
               mfcc( A, fs1, Tw, Ts, alpha, hamming, R, M, C, L );
 
-% % Plot cepstrum over time
-% figure('Position', [30 100 800 200], 'PaperPositionMode', 'auto', ...
-%      'color', 'w', 'PaperOrientation', 'landscape', 'Visible', 'on' );
-%
-% imagesc( [1:size(MFCCs1,2)], [0:C-1], MFCCs1 );
-% axis( 'xy' );
-% xlabel( 'Frame index' );
-% ylabel( 'Cepstrum index' );
-% title( 'Mel frequency cepstrum' );
-
+%separating the values into the delta array
 for i = 1:size(MFCCs1,2)
     if and(i > 1,i<size(MFCCs1,2))
         MFCCd1(:,i) = (MFCCs1(:,i+1) - MFCCs1(:,i-1))/2;
@@ -77,11 +69,9 @@ for i = 1:size(MFCCs1,2)
         MFCCd1(:,i) = MFCCs1(:,i);
         eframesd1(i) = eframes1(i);
     end
-
-
-
 end
 
+%separating the values into the double delta array
 for k = 1:size(MFCCs1,2)
     if and(k > 1,k<size(MFCCs1,2))
          MFCCdd1(:,k) = (MFCCd1(:,k+1) - MFCCd1(:,k-1))/2;
@@ -92,7 +82,8 @@ for k = 1:size(MFCCs1,2)
     end
 end
 
- if length(MFCCs1) > length(MFCCd1)
+%array padding with zeroes to make them all equal lengths for MFCCd for first word
+if length(MFCCs1) > length(MFCCd1)
         g = length(MFCCs1) - length(MFCCd1);
         MFCCd = padarray(MFCCd1,[0,g],'post');
         MFCCs = MFCCs1;
@@ -103,9 +94,10 @@ end
     else
         MFCCs = MFCCs1;
         MFCCd = MFCCd1;
- end
+end
 
- if length(eframes1) > length(eframesd1)
+%array padding with zeroes to make them all equal lengths for eframesd for first word
+if length(eframes1) > length(eframesd1)
         r = length(eframes1) - length(eframesd1);
         eframesd = padarray(eframesd1,[0,r],'post');
         eframes = eframes1;
@@ -116,28 +108,23 @@ end
     else
         eframes = eframes1;
         eframesd = eframesd1;
- end
+end
 
+%Combining all the MFCC and energy frames into a features array
 MFCCfeats1 = [MFCCs;eframes;MFCCd;MFCCdd1;eframesd;eframesdd1];
+
 %Converting NaN to zeros
 MFCCfeats1(isnan(MFCCfeats1))=0;
+
 %Converting the matrix into a vector for distance calculation
 MFCCfeats1_vector = MFCCfeats1(:);
 
-% Feature extraction (feature vectors as columns)
+% Feature extraction (feature vectors as columns) for the second word
 [ MFCCs2, FBEs2, frames2,eframes2 ] = ...
               mfcc( y, fs2, Tw, Ts, alpha, hamming, R, M, C, L );
 
-% % Plot cepstrum over time
-% figure('Position', [30 100 800 200], 'PaperPositionMode', 'auto', ...
-%      'color', 'w', 'PaperOrientation', 'landscape', 'Visible', 'on' );
-%
-% imagesc( [1:size(MFCCs2,2)], [0:C-1], MFCCs2 );
-% axis( 'xy' );
-% xlabel( 'Frame index' );
-% ylabel( 'Cepstrum index' );
-% title( 'Mel frequency cepstrum' );
 
+%separating the values into the delta array
 for i = 1:size(MFCCs2,2)
     if and(i > 1,i<size(MFCCs2,2))
         MFCCd2(:,i) = (MFCCs2(:,i+1) - MFCCs2(:,i-1))/2;
@@ -148,6 +135,7 @@ for i = 1:size(MFCCs2,2)
     end
 end
 
+%separating the values into the double delta array 
 for i = 1:size(MFCCs2,2)
     if and(i > 1,i<size(MFCCs2,2))
          MFCCdd2(:,i) = (MFCCd2(:,i+1) - MFCCd2(:,i-1))/2;
@@ -158,6 +146,7 @@ for i = 1:size(MFCCs2,2)
     end
 end
 
+%array padding with zeroes to make them all equal lengths for MFCCd for second word
  if length(MFCCs2) > length(MFCCd2)
         h = length(MFCCs2) - length(MFCCd2);
         MFCCdn = padarray(MFCCd2,[0,h],'post');
@@ -171,6 +160,7 @@ end
         MFCCdn = MFCCd2;
  end
 
+%array padding with zeroes to make them all equal lengths for eframesd for second word
  if length(eframes2) > length(eframesd2)
         v = length(eframes2) - length(eframesd2);
         eframesdn = padarray(eframesd2,[0,v],'post');
@@ -189,8 +179,10 @@ MFCCfeats2 = [MFCCsn;eframesn;MFCCdn;MFCCdd2;eframesdn;eframesdd2];
 MFCCfeats2(isnan(MFCCfeats2))=0;
 MFCCfeats2_vector = MFCCfeats2(:);
 
+%Computing the Euclidian distance between the MFCC feature vectors for both words
 E_distance = sqrt(sum((MFCCfeats2_vector - MFCCfeats1_vector).^2));
 
+%Keep the minimum distance for similiarity comparison
 if E_distance <= s
     s = E_distance;
     n = i;
